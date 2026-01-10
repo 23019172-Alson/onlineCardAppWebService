@@ -30,7 +30,7 @@ app.listen(port, () => {
 app.get('/allfoods', async (req, res) => {
     try{
         let connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute('SELECT * FROM defaultdb.foods');
+        const [rows] = await connection.execute('SELECT * FROM defaultdb.food');
         res.json(rows);
         await connection.end();
     } catch (err) {
@@ -40,13 +40,14 @@ app.get('/allfoods', async (req, res) => {
 });
 
 
+
 //  Route: Add a new food
 app.post('/addfood', async (req, res) => {
     const { name, category, price } = req.body;
     try{
         let connection = await mysql.createConnection(dbConfig);
         await connection.execute(
-          'INSERT INTO defaultdb.foods (name, category, price) VALUES (?, ?, ?)',
+          'INSERT INTO defaultdb.food (name, category, price) VALUES (?, ?, ?)',
           [name, category, price]
         );
 
@@ -59,6 +60,7 @@ app.post('/addfood', async (req, res) => {
 });
 
 
+
 //  Route: Update a food (by id)
 app.put('/updatefood/:id', async (req, res) => {
     const { id } = req.params;
@@ -67,16 +69,11 @@ app.put('/updatefood/:id', async (req, res) => {
     try{
         let connection = await mysql.createConnection(dbConfig);
         const [result] = await connection.execute(
-          'UPDATE defaultdb.foods SET name=?, category=?, price=? WHERE id=?',
+          'UPDATE defaultdb.food SET name=?, category=?, price=? WHERE id=?',
           [name, category, price, id]
         );
 
-        if (result.affectedRows === 0) {
-          res.status(404).json({message:'Food id ' + id + ' not found'});
-        } else {
-          res.json({message:'Food id ' + id + ' updated successfully'});
-        }
-
+        res.json({message:'Food id ' + id + ' updated successfully'});
         await connection.end();
     } catch (err) {
         console.error(err);
@@ -85,26 +82,23 @@ app.put('/updatefood/:id', async (req, res) => {
 });
 
 
+
 //  Route: Delete a food (by id)
 app.delete('/deletefood/:id', async (req, res) => {
     const { id } = req.params;
 
     try{
         let connection = await mysql.createConnection(dbConfig);
-        const [result] = await connection.execute(
-          'DELETE FROM defaultdb.foods WHERE id=?',
+        await connection.execute(
+          'DELETE FROM defaultdb.food WHERE id=?',
           [id]
         );
 
-        if (result.affectedRows === 0) {
-          res.status(404).json({message:'Food id ' + id + ' not found'});
-        } else {
-          res.json({message:'Food id ' + id + ' deleted successfully'});
-        }
-
+        res.json({message:'Food id ' + id + ' deleted successfully'});
         await connection.end();
     } catch (err) {
         console.error(err);
         res.status(500).json({message:'Server error - could not delete food id ' + id});
     }
 });
+
