@@ -1,8 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 require('dotenv').config();
-const port = 3000;
-
+const port = 3000;   
 
 //database config info 
 const dbConfig = {
@@ -26,59 +25,80 @@ app.listen(port, () => {
     console.log('Server is running on port', port);
 });
 
-// Example Route: Get all Cards
-app.get('/allcards', async (req, res) => {
+
+//  Route: View all foods
+app.get('/allfoods', async (req, res) => {
     try{
         let connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute('SELECT * FROM defaultdb.cards');
+        const [rows] = await connection.execute('SELECT * FROM defaultdb.food');
         res.json(rows);
+        await connection.end();
     } catch (err) {
         console.error(err);
-        res.status(500).json({message:'Server error for allcards'});
+        res.status(500).json({message:'Server error for allfoods'});
     }
 });
 
-// Example Route: Create a new Card
-app.post('/addcard', async (req, res) => {
-    const { card_name,card_pic } = req.body;
+
+
+//  Route: Add a new food
+app.post('/addfood', async (req, res) => {
+    const { name, category, price } = req.body;
     try{
         let connection = await mysql.createConnection(dbConfig);
-        await connection.execute('INSERT INTO defaultdb.cards (card_name, card_pic) VALUES (?, ?)', [card_name, card_pic]);
+        await connection.execute(
+          'INSERT INTO defaultdb.food (name, category, price) VALUES (?, ?, ?)',
+          [name, category, price]
+        );
 
-        res.status(201).json({message:'Card'+card_name+' added successfully'});
+        res.status(201).json({message:'Food ' + name + ' added successfully'});
+        await connection.end();
     } catch (err) {
         console.error(err);
-        res.status(500).json({message:'Server error - could not add card '+card_name});
-        
-        
-    }
-});
-
-// Example Route: Delete a Card 
-app.delete('/deletecard/:id', async (req, res) => {
-    const {id}= req.params;
-    try{
-        let connection = await mysql.createConnection(dbConfig);
-        await connection.execute('DELETE FROM cards WHERE id ='+ id);
-        res.status(201).json({message:'Card '+ id+ 'deleted successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({message:'Server error - could not delete card '+ id});
-
+        res.status(500).json({message:'Server error - could not add food ' + name});
     }
 });
 
 
-// Example Route: Update a Card
-app.put('/updatecard/:id', async (req, res) => {
+
+//  Route: Update a food (by id)
+app.put('/updatefood/:id', async (req, res) => {
     const { id } = req.params;
-    const { card_name, card_pic } = req.body;
+    const { name, category, price } = req.body;
+
     try{
         let connection = await mysql.createConnection(dbConfig);
-        await connection.execute('UPDATE cards SET card_name = ?, card_pic = ? WHERE id = ?', [card_name, card_pic, id]);
-        res.status(201).json({message:'Card '+ card_name+ 'updated successfully' });
+        const [result] = await connection.execute(
+          'UPDATE defaultdb.food SET name=?, category=?, price=? WHERE id=?',
+          [name, category, price, id]
+        );
+
+        res.json({message:'Food id ' + id + ' updated successfully'});
+        await connection.end();
     } catch (err) {
         console.error(err);
-        res.status(500).json({message:'Server error - could not update card '+ card_name});
+        res.status(500).json({message:'Server error - could not update food id ' + id});
     }
 });
+
+
+
+//  Route: Delete a food (by id)
+app.delete('/deletefood/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try{
+        let connection = await mysql.createConnection(dbConfig);
+        await connection.execute(
+          'DELETE FROM defaultdb.food WHERE id=?',
+          [id]
+        );
+
+        res.json({message:'Food id ' + id + ' deleted successfully'});
+        await connection.end();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({message:'Server error - could not delete food id ' + id});
+    }
+});
+
